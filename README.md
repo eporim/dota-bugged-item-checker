@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bugged Item Checker
 
-## Getting Started
+Self-hosted Next.js app to check Dota 2 Steam inventories for duped items before buying or trading. Enter a Steam profile URL or SteamID64, and it scans the Dota 2 inventory against a known list of duped `original_id` values. Results are cached server-side (Redis) to reduce Steam API calls, and in your browser (localStorage, 7-day expiry) with a search history of previous profiles. Built with [Next.js](https://nextjs.org), [TanStack Query](https://tanstack.com/query), and [shadcn/ui](https://ui.shadcn.com).
 
-First, run the development server:
+## Usage
+
+1. Enter a Steam profile URL (e.g. `https://steamcommunity.com/id/username`) or a SteamID64.
+2. Click **Check**.
+3. View any duped items found, with direct links to each item in the Steam inventory.
+
+The checker resolves vanity URLs to SteamID64 automatically. Inventories must be public.
+
+## Prerequisites
+
+Before running your own instance, you need:
+
+- [Node.js](https://nodejs.org) 20+
+- [Redis](https://redis.io) (for server-side caching and rate limiting; required for multi-instance deployments)
+- [Steam API key](https://steamcommunity.com/dev/apikey) (one-time setup; users do not need to register)
+
+## Installation
+
+```bash
+git clone <your-repo-url>
+cd bugged-item-checker
+npm install
+```
+
+Copy `.env.example` to `.env` and fill in the required values. Then:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+For production:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+### Example .env file
 
-To learn more about Next.js, take a look at the following resources:
+The `<>` placeholders indicate what to replace; do not include them in your actual values.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```env
+# Required: Steam Web API key for GetPlayerItems (dupe detection needs original_id)
+# Get one at https://steamcommunity.com/dev/apikey
+STEAM_API_KEY=<your_steam_api_key>
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Required: Redis connection URL for server-side caching (6h TTL)
+REDIS_URL=redis://localhost:6379
+```
 
-## Deploy on Vercel
+## Docker
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+docker build -t bugged-item-checker .
+docker run -p 3000:3000 \
+  -e STEAM_API_KEY=your_key \
+  -e REDIS_URL=redis://host.docker.internal:6379 \
+  bugged-item-checker
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Ensure Redis is reachable from the container. Use `host.docker.internal` on macOS/Windows to reach Redis on the host.
+
+Optional: set `NEXT_PUBLIC_REPO_URL` to your GitHub repo URL for the footer link.
+
+## API
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/check` | POST | Resolve Steam ID, fetch inventory (or Redis cache), run dupe check. Body: `{ steamIdOrUrl: string }` |
+| `/api/resolve` | POST | Resolve vanity URL or profile URL to SteamID64. Body: `{ vanityUrl?: string, steamIdOrUrl?: string }` |
+
+## License
+
+[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) — Attribution required, noncommercial use only. See [LICENSE](LICENSE).
