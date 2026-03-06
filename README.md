@@ -54,19 +54,31 @@ STEAM_API_KEY=<your_steam_api_key>
 REDIS_URL=redis://localhost:6379
 ```
 
-## Docker
+## Railpack / Railway
 
-```bash
-docker build -t bugged-item-checker .
-docker run -p 3000:3000 \
-  -e STEAM_API_KEY=your_key \
-  -e REDIS_URL=redis://host.docker.internal:6379 \
-  bugged-item-checker
-```
+This project uses [Railpack](https://railpack.com/) for zero-config builds. Deploy to [Railway](https://railway.app/) or any platform that supports Railpack.
 
-Ensure Redis is reachable from the container. Use `host.docker.internal` on macOS/Windows to reach Redis on the host.
+### Deploy to Railway
+
+1. Connect your GitHub repo to [Railway](https://railway.app/)
+2. Create a new project and select your repository
+3. Railway detects the Node.js/Next.js app and builds with Railpack automatically
+4. Set environment variables in the Railway dashboard:
+   - `STEAM_API_KEY` — your Steam Web API key
+   - `REDIS_URL` — Redis connection URL (e.g. `redis://host:port`)
 
 Optional: set `NEXT_PUBLIC_REPO_URL` to your GitHub repo URL for the footer link.
+
+### Local Railpack build
+
+To build a container image locally with Railpack:
+
+```bash
+curl -fsSL https://railpack.com/install.sh | sh
+railpack build
+```
+
+Requires [Docker](https://docs.docker.com/get-docker/) or BuildKit for container output.
 
 ## API
 
