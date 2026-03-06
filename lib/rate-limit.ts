@@ -5,8 +5,8 @@ import {
   type IRateLimiterRedisOptions,
 } from "rate-limiter-flexible";
 
-const RATE_LIMIT_POINTS = 1;
-const RATE_LIMIT_DURATION = 120;
+const RATE_LIMIT_POINTS = 10;
+const RATE_LIMIT_DURATION = 3600;
 const RATE_LIMIT_KEY_PREFIX = "rl:check:";
 
 function initRateLimiter(): RateLimiterMemory | RateLimiterRedis {
@@ -35,11 +35,37 @@ function initRateLimiter(): RateLimiterMemory | RateLimiterRedis {
 
 const rateLimiter = initRateLimiter();
 
-export async function checkRateLimit(ip: string): Promise<boolean> {
+export interface RateLimitResult {
+  allowed: boolean;
+  msBeforeNext?: number;
+}
+
+export interface RateLimitStatus {
+  remainingSearches: number;
+  msBeforeNext?: number;
+}
+
+export async function checkRateLimit(ip: string): Promise<RateLimitResult> {
   try {
-    await rateLimiter.consume(ip);
-    return true;
-  } catch {
-    return false;
+    const res = await rateLimiter.consume(ip);
+    return { allowed: true, msBeforeNext: res.msBeforeNext };
+  } catch (rejected) {
+    const res = rejected as { msBeforeNext?: number };
+    return {
+      allowed: false,
+      msBeforeNext: res?.msBeforeNext ?? RATE_LIMIT_DURATION * 1000,
+    };
   }
+}
+
+export async function getRateLimitStatus(ip: string): Promise<RateLimitStatus> {
+  const res = await rateLimiter.get(ip);
+  if (!res) {
+    return { remainingSearches: RATE_LIMIT_POINTS };
+  }
+  const remaining = Math.max(0, res.remainingPoints ?? 0);
+  return {
+    remainingSearches: remaining,
+    msBeforeNext: remaining === 0 ? res.msBeforeNext : undefined,
+  };
 }

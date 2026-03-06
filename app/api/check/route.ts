@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { resolveSteamId, getPlayerItems, SteamApiError } from "@/lib/steam";
 import { getCachedInventory, setCachedInventory } from "@/lib/redis";
 import { checkInventory } from "@/lib/dupe-checker";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, getRateLimitStatus } from "@/lib/rate-limit";
 
 function getClientIp(req: NextRequest): string {
   return (
@@ -15,11 +15,12 @@ function getClientIp(req: NextRequest): string {
 export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req);
-    const allowed = await checkRateLimit(ip);
-    if (!allowed) {
+    const rateLimitResult = await checkRateLimit(ip);
+    if (!rateLimitResult.allowed) {
       return NextResponse.json(
         {
-          error: "Too many requests. Please wait 2 minutes before checking again.",
+          error: "Rate limit reached. Please wait before checking again.",
+          msBeforeNext: rateLimitResult.msBeforeNext,
         },
         { status: 429 }
       );
@@ -50,12 +51,14 @@ export async function POST(req: NextRequest) {
     }
 
     const result = checkInventory(items, steamid64);
+    const rateLimitStatus = await getRateLimitStatus(ip);
 
     return NextResponse.json({
       dupedItems: result.dupedItems,
       totalChecked: result.totalChecked,
       steamid64,
       cached,
+      rateLimit: rateLimitStatus,
     });
   } catch (err) {
     if (err instanceof SteamApiError) {
@@ -63,7 +66,10 @@ export async function POST(req: NextRequest) {
       const code = err.code;
       if (code === "RATE_LIMITED") {
         return NextResponse.json(
-          { error: err.message },
+          {
+            error: err.message,
+            msBeforeNext: 120_000,
+          },
           { status: 429 }
         );
       }

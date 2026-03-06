@@ -24,7 +24,10 @@ vi.mock("@/lib/redis", () => ({
 }));
 
 vi.mock("@/lib/rate-limit", () => ({
-  checkRateLimit: vi.fn().mockResolvedValue(true),
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true }),
+  getRateLimitStatus: vi.fn().mockResolvedValue({
+    remainingSearches: 1,
+  }),
 }));
 
 vi.mock("@/lib/dupe-checker", () => ({
