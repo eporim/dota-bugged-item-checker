@@ -43,7 +43,11 @@ export function useCheckInventory() {
   const mutation = useMutation({
     mutationFn: fetchCheck,
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["rate-limit-status"] });
+      if (data.rateLimit) {
+        queryClient.setQueryData(["rate-limit-status"], data.rateLimit);
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["rate-limit-status"] });
+      }
       saveSearch(
         data.steamid64,
         variables,
