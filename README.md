@@ -1,4 +1,8 @@
-# Bugged Item Checker
+<h1 align="center">Bugged Item Checker</h1>
+
+<p align="center">
+	<img alt="Bugged Item Checker" src="https://github.com/eporim/dota-bugged-item-checker/blob/9bbbf9b57e5873df29d1b7ba66a01ec33b127380/public/D2BIC.png" width="50%" height="500">
+</p>
 
 Self-hosted Next.js app to check Dota 2 Steam inventories for duped items before buying or trading. Enter a Steam profile URL or SteamID64, and it scans the Dota 2 inventory against a known list of duped `original_id` values. Results are cached server-side (Redis) to reduce Steam API calls, and in your browser (localStorage, 7-day expiry) with a search history of previous profiles. Built with [Next.js](https://nextjs.org), [TanStack Query](https://tanstack.com/query), and [shadcn/ui](https://ui.shadcn.com).
 
