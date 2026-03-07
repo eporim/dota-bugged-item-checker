@@ -10,7 +10,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth((req) => ({
   providers: [
     SteamProvider(req!, {
       clientSecret: process.env.STEAM_API_KEY!,
-      callbackUrl: `${baseUrl}/api/auth/steam-proxy`,
+      callbackUrl: `${baseUrl}/api/steam-callback`,
     }),
   ],
   callbacks: {
@@ -22,4 +22,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth((req) => ({
     },
   },
   trustHost: true,
+  pages: {
+    error: "/auth-error",
+  },
 }));
