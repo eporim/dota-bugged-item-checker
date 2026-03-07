@@ -59,13 +59,17 @@ export async function checkRateLimit(ip: string): Promise<RateLimitResult> {
 }
 
 export async function getRateLimitStatus(ip: string): Promise<RateLimitStatus> {
-  const res = await rateLimiter.get(ip);
-  if (!res) {
+  try {
+    const res = await rateLimiter.get(ip);
+    if (!res) {
+      return { remainingSearches: RATE_LIMIT_POINTS };
+    }
+    const remaining = Math.max(0, res.remainingPoints ?? 0);
+    return {
+      remainingSearches: remaining,
+      msBeforeNext: remaining === 0 ? res.msBeforeNext : undefined,
+    };
+  } catch {
     return { remainingSearches: RATE_LIMIT_POINTS };
   }
-  const remaining = Math.max(0, res.remainingPoints ?? 0);
-  return {
-    remainingSearches: remaining,
-    msBeforeNext: remaining === 0 ? res.msBeforeNext : undefined,
-  };
 }
