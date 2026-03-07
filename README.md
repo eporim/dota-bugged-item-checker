@@ -89,3 +89,5 @@ Requires [Docker](https://docs.docker.com/get-docker/) or BuildKit for container
 | `/api/check` | POST | Resolve Steam ID, fetch inventory (or Redis cache), run dupe check. Body: `{ steamIdOrUrl: string }` |
 | `/api/resolve` | POST | Resolve vanity URL or profile URL to SteamID64. Body: `{ vanityUrl?: string, steamIdOrUrl?: string }` |
 
+Testing CI/CD
+
