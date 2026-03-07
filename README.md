@@ -71,8 +71,6 @@ This project uses [Railpack](https://railpack.com/) for zero-config builds. Depl
    - `STEAM_API_KEY` — your Steam Web API key
    - `REDIS_URL` — Redis connection URL (e.g. `redis://host:port`)
 
-Optional: set `NEXT_PUBLIC_REPO_URL` to your GitHub repo URL for the footer link.
-
 ### Local Railpack build
 
 To build a container image locally with Railpack:
@@ -91,6 +89,3 @@ Requires [Docker](https://docs.docker.com/get-docker/) or BuildKit for container
 | `/api/check` | POST | Resolve Steam ID, fetch inventory (or Redis cache), run dupe check. Body: `{ steamIdOrUrl: string }` |
 | `/api/resolve` | POST | Resolve vanity URL or profile URL to SteamID64. Body: `{ vanityUrl?: string, steamIdOrUrl?: string }` |
 
-## License
-
-[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) — Attribution required, noncommercial use only. See [LICENSE](LICENSE).
