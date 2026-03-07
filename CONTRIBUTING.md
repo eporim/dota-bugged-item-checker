@@ -1,12 +1,15 @@
 # Contributing to Bugged Item Checker
 
-Thank you for your interest in contributing. This document covers setup, workflow, and code style.
+This is an internal project. This document covers onboarding, development workflow, and code style for team members.
 
 ## Setup
 
-1. Fork and clone the repository.
+1. Clone the repository: `git clone <repo-url>`
 2. Install dependencies: `npm install`
-3. Copy `.env.example` to `.env` and fill in required values (Steam API key, Redis URL).
+3. Copy `.env.example` to `.env` and fill in required values:
+   - `STEAM_API_KEY` — Steam Web API key
+   - `REDIS_URL` — Redis connection URL (includes password)
+   - `DOKPLOY_AUTH_TOKEN`, `DOKPLOY_APPLICATION_ID`, `DOKPLOY_URL` — CI/CD deployment credentials (optional for local dev)
 4. Run the dev server: `npm run dev`
 
 ## Development
@@ -16,12 +19,14 @@ Thank you for your interest in contributing. This document covers setup, workflo
 - **Typecheck:** `npm run typecheck`
 - **Tests:** `npm test`
 
-## Pull Request Process
+## Workflow
 
 1. Create a branch from `main` (e.g. `fix/rate-limit`, `feat/add-export`).
-2. Make your changes. Ensure `npm run lint`, `npm run typecheck`, and `npm test` pass.
-3. Open a PR with a clear description of the change.
-4. Address any review feedback.
+2. Make your changes. Ensure `npm run lint`, `npm run typecheck`, and `npm test` pass locally.
+3. Push your branch and open a PR against `main`.
+4. CI runs automatically on PRs (lint, typecheck, test, build). All checks must pass.
+5. Request review from a team member and address feedback.
+6. Merge to `main` triggers automatic deployment via Dokploy.
 
 ## Code Style
 
@@ -42,6 +47,21 @@ Thank you for your interest in contributing. This document covers setup, workflo
 - `data-hooks/` — TanStack Query hooks and API clients
 - `lib/` — Steam API, Redis, dupe checker, rate limit
 - `types/` — Shared TypeScript types
+
+## Deployment
+
+The project uses GitHub Actions for CI/CD (see `.github/workflows/ci.yml`).
+
+**On every push and PR to `main`:**
+- Runs `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build`
+
+**On push to `main` (after CI passes):**
+- Automatically deploys to production via Dokploy
+
+Deployment credentials are stored as GitHub Secrets:
+- `DOKPLOY_AUTH_TOKEN`
+- `DOKPLOY_APPLICATION_ID`
+- `DOKPLOY_URL`
 
 ## Adding Dupe IDs
 
