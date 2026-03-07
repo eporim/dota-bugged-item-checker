@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
         hostname: "cdn.cloudflare.steamstatic.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "steamcommunity-a.akamaihd.net",
+        pathname: "/**",
+      },
     ],
   },
 };

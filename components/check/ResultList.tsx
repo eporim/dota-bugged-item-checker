@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -65,10 +66,28 @@ export function ResultList({
                 className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="destructive">Duped</Badge>
-                  <span className="text-sm text-muted-foreground">
-                    DefIndex: {item.defindex}
-                  </span>
+                  {item.imageUrl && (
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.itemName ?? `Item ${item.defindex}`}
+                      width={48}
+                      height={48}
+                      className="size-12 shrink-0 rounded object-contain bg-muted"
+                    />
+                  )}
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="destructive">Duped</Badge>
+                      <span className="text-sm font-medium">
+                        {item.itemName ?? `DefIndex: ${item.defindex}`}
+                      </span>
+                    </div>
+                    {item.gems && item.gems.length > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        {item.gems.map((g) => `${g.type}: ${g.value ?? "—"}`).join(", ")}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <a
                   href={item.inventoryLink}

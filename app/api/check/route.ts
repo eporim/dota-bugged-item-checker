@@ -3,6 +3,8 @@ import { resolveSteamId, getPlayerItems, SteamApiError } from "@/lib/steam";
 import { getCachedInventory, setCachedInventory } from "@/lib/redis";
 import { checkInventory } from "@/lib/dupe-checker";
 import { checkRateLimit, getRateLimitStatus } from "@/lib/rate-limit";
+import { getCachedCheckResult, upsertCheckResult, insertRecentBuggedItems } from "@/lib/supabase-check-results";
+import { enrichDupedItems } from "@/lib/steam-enrichment";
 
 function getClientIp(req: NextRequest): string {
   return (
@@ -37,6 +39,18 @@ export async function POST(req: NextRequest) {
 
     const steamid64 = await resolveSteamId(steamIdOrUrl.trim());
 
+    const supabaseCached = await getCachedCheckResult(steamid64);
+    if (supabaseCached) {
+      const rateLimitStatus = await getRateLimitStatus(ip);
+      return NextResponse.json({
+        dupedItems: supabaseCached.dupedItems,
+        totalChecked: supabaseCached.totalChecked,
+        steamid64,
+        cached: true,
+        rateLimit: rateLimitStatus,
+      });
+    }
+
     let items: { id: string; original_id: string; defindex: number }[];
     let cached = false;
 
@@ -50,7 +64,17 @@ export async function POST(req: NextRequest) {
       await setCachedInventory(steamid64, { items });
     }
 
-    const result = checkInventory(items, steamid64);
+    let result = checkInventory(items, steamid64);
+
+    if (result.dupedItems.length > 0) {
+      const enriched = await enrichDupedItems(result.dupedItems, steamid64);
+      result = { ...result, dupedItems: enriched };
+      await upsertCheckResult(steamid64, enriched, result.totalChecked);
+      await insertRecentBuggedItems(steamid64, enriched);
+    } else {
+      await upsertCheckResult(steamid64, [], result.totalChecked);
+    }
+
     const rateLimitStatus = await getRateLimitStatus(ip);
 
     return NextResponse.json({

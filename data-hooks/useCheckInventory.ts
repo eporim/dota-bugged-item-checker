@@ -56,6 +56,9 @@ export function useCheckInventory() {
       );
       setCachedResult(null);
       setSearchVersion((v) => v + 1);
+      if (data.dupedItems.length > 0) {
+        queryClient.invalidateQueries({ queryKey: ["recent-bugged-items"] });
+      }
     },
   });
 

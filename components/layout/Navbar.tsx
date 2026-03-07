@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { PiMagnifyingGlass } from "react-icons/pi";
+import { SignInButton } from "@/components/auth/SignInButton";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 
 export function Navbar() {
   return (
@@ -20,7 +24,10 @@ export function Navbar() {
             Bugged Item <span className="text-primary">Checker</span>
           </span>
         </Link>
-        <div className="flex items-center gap-2" />
+        <div className="flex items-center gap-2">
+          <SignInButton />
+          <SignOutButton />
+        </div>
       </nav>
     </header>
   );
