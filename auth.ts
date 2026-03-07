@@ -1,12 +1,6 @@
 import NextAuth from "next-auth";
 import SteamProvider from "authjs-steam-provider";
 
-if (!process.env.AUTH_SECRET) {
-  throw new Error(
-    "AUTH_SECRET is required. Add it to .env (e.g. AUTH_SECRET=$(openssl rand -base64 32))"
-  );
-}
-
 const baseUrl =
   process.env.AUTH_URL ??
   process.env.NEXTAUTH_URL ??
