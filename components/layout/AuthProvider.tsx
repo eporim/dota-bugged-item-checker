@@ -3,75 +3,39 @@
 import {
   createContext,
   useContext,
-  useEffect,
-  useState,
   useCallback,
 } from "react";
-import type { User, Session } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase-client";
+import type { Session } from "next-auth";
+import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from "next-auth/react";
 
 interface AuthContextValue {
-  user: User | null;
+  user: Session["user"] | null;
   session: Session | null;
   isLoading: boolean;
-  signInWithEmail: (email: string) => Promise<{ error: Error | null }>;
+  signInWithSteam: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClient();
+  const { data: session, status } = useSession();
+  const isLoading = status === "loading";
+  const user = session?.user ?? null;
 
-  useEffect(() => {
-    if (!supabase) {
-      const id = setTimeout(() => setIsLoading(false), 0);
-      return () => clearTimeout(id);
-    }
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
-
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase]);
-
-  const signInWithEmail = useCallback(
-    async (email: string) => {
-      if (!supabase) return { error: new Error("Supabase not configured") };
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
-        },
-      });
-      return { error: error ?? null };
-    },
-    [supabase]
-  );
+  const signInWithSteam = useCallback(async () => {
+    await nextAuthSignIn("steam");
+  }, []);
 
   const signOut = useCallback(async () => {
-    if (supabase) await supabase.auth.signOut();
-  }, [supabase]);
+    await nextAuthSignOut();
+  }, []);
 
   const value: AuthContextValue = {
     user,
-    session,
+    session: session ?? null,
     isLoading,
-    signInWithEmail,
+    signInWithSteam,
     signOut,
   };
 
